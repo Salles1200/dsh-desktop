@@ -1,7 +1,7 @@
-// dsh-window — a minimal native WebView2 shell for the DeepSeek Harness web UI.
+// dsh-desktop — a minimal native WebView2 shell for the DeepSeek Harness web UI.
 //
 // Built against .NET Framework 4.x (WinForms) and the Microsoft WebView2
-// Evergreen Runtime. It reads a line-based config file `dsh-webview2.conf`
+// Evergreen Runtime. It reads a line-based config file `dsh-desktop.conf`
 // from its own directory:
 //
 //   url=http://127.0.0.1:3080
@@ -21,7 +21,7 @@
 //
 // It is per-monitor DPI aware (via the embedded manifest and a programmatic
 // fallback), so the WebView2 content renders sharply on high-DPI displays.
-// Diagnostics are appended to `dsh-webview2.log` beside the exe.
+// Diagnostics are appended to `dsh-desktop.log` beside the exe.
 // C# 5 compatible (no string interpolation, no `?.`).
 
 using System;
@@ -106,8 +106,8 @@ namespace DshDesktopShortcut
         private static void Main(string[] args)
         {
             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-            string logPath = Path.Combine(baseDir, "dsh-webview2.log");
-            string configPath = Path.Combine(baseDir, "dsh-webview2.conf");
+            string logPath = Path.Combine(baseDir, "dsh-desktop.log");
+            string configPath = Path.Combine(baseDir, "dsh-desktop.conf");
 
             // Single instance: if another dsh-window is already running, ask it
             // to show its window and exit this process without creating a new

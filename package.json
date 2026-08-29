@@ -1,7 +1,7 @@
 {
-  "name": "dsh-desktop-shortcut",
+  "name": "dsh-desktop",
   "version": "1.0.0",
-  "description": "DSH plugin: create a Windows desktop shortcut that launches the DeepSeek Harness web UI in a native WebView2 window instead of a browser window",
+  "description": "DSH plugin: run the DeepSeek Harness web UI as a native Windows desktop app (WebView2 window, system-tray icon, desktop shortcut, high-DPI)",
   "type": "module",
   "main": "lib/index.js",
   "exports": {
@@ -12,8 +12,8 @@
   "files": [
     "lib/index.js",
     "cordis.patch.yml",
-    "bin/dsh-window.exe",
-    "bin/dsh-window.exe.config",
+    "bin/dsh-desktop.exe",
+    "bin/dsh-desktop.exe.config",
     "bin/Microsoft.Web.WebView2.Core.dll",
     "bin/Microsoft.Web.WebView2.WinForms.dll",
     "bin/WebView2Loader.dll",
@@ -24,7 +24,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Salles1200/dsh-desktop-shortcut.git"
+    "url": "https://github.com/Salles1200/dsh-desktop.git"
   },
   "dsh": {
     "bundle": {

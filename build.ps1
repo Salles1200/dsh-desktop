@@ -1,4 +1,4 @@
-# build.ps1 — build the native WebView2 host (bin/dsh-window.exe).
+# build.ps1 — build the native WebView2 host (bin/dsh-desktop.exe).
 #
 # Requirements:
 #   - Windows (the host is WinForms + WebView2)
@@ -57,7 +57,7 @@ New-Item -ItemType Directory -Force -Path $binDir | Out-Null
 $fw = "$env:WINDIR\Microsoft.NET\Framework64\v4.0.30319"
 & $csc /nologo /target:winexe /platform:x64 /optimize+ `
     /win32manifest:"$hostDir\app.manifest" `
-    /out:"$binDir\dsh-window.exe" `
+    /out:"$binDir\dsh-desktop.exe" `
     /r:"$fw\System.dll" /r:"$fw\System.Drawing.dll" /r:"$fw\System.Windows.Forms.dll" `
     /r:"$($core.FullName)" /r:"$($winforms.FullName)" `
     "$hostDir\Program.cs"
@@ -67,8 +67,8 @@ if ($LASTEXITCODE -ne 0) { throw "csc.exe failed with exit code $LASTEXITCODE" }
 Copy-Item $core.FullName     "$binDir\Microsoft.Web.WebView2.Core.dll"     -Force
 Copy-Item $winforms.FullName "$binDir\Microsoft.Web.WebView2.WinForms.dll" -Force
 Copy-Item $loader.FullName   "$binDir\WebView2Loader.dll"                  -Force
-Copy-Item "$hostDir\app.config" "$binDir\dsh-window.exe.config"            -Force
+Copy-Item "$hostDir\app.config" "$binDir\dsh-desktop.exe.config"           -Force
 
 Write-Host ""
-Write-Host "Built: $binDir\dsh-window.exe"
+Write-Host "Built: $binDir\dsh-desktop.exe"
 Write-Host "Now install with:  dsh plugin --profile web add ."
