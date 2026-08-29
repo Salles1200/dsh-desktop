@@ -12,6 +12,7 @@
   "files": [
     "lib/index.js",
     "cordis.patch.yml",
+    "assets/default-icon.png",
     "bin/dsh-desktop.exe",
     "bin/dsh-desktop.exe.config",
     "bin/Microsoft.Web.WebView2.Core.dll",

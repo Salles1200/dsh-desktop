@@ -53,17 +53,27 @@ dsh plugin --profile web add ./dsh-desktop
 
 ## 配置
 
-在 profile 的 `cordis.patch.yml` 中可覆盖以下配置（均为可选项）：
+所有配置都是**可选**的，且默认值与工作区无关——插件在 DSH host 启动时自动从运行时环境推导，因此**不同用户、不同 workspace 都能开箱即用**。如需覆盖，在你的 profile 的 `cordis.patch.yml` 里对 `dsh-desktop` 这一行加 `config` 即可：
 
 | 键 | 默认值 | 说明 |
 |---|---|---|
 | `shortcutName` | `DeepSeek Harness` | 快捷方式名称（也是窗口标题） |
 | `url` | `http://127.0.0.1:3080` | DSH Web 界面地址 |
-| `iconPath` | `D:\AI\DeepSeek-Harness\deepseek-color.png` | 图标 PNG 绝对路径 |
-| `workingDir` | `D:\AI\DeepSeek-Harness` | DSH 启动时的工作目录（workspace 根） |
+| `iconPath` | `<workspace>/deepseek-color.png`，否则用插件内置默认图标 | 图标 PNG 路径（可选） |
+| `workingDir` | `process.cwd()`（你的 DSH workspace 根） | DSH 启动时的工作目录 |
 | `nodePath` | `process.execPath` | node.exe 路径（一般无需覆盖） |
 | `dshEntry` | `process.argv[1]` | DSH 入口 `bin.js`（一般无需覆盖） |
 | `desktopDir` | 系统桌面 | 桌面目录覆盖（测试用） |
+
+示例（覆盖图标和工作目录）：
+
+```yaml
+# 你的 profile 的 cordis.patch.yml
+- id: dsh-desktop
+  config:
+    iconPath: 'C:\Users\me\my-dsh\icon.png'
+    workingDir: 'C:\Users\me\my-dsh'
+```
 
 ## 依赖与要求
 

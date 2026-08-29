@@ -2,11 +2,18 @@
 # Harness web UI into a native Windows desktop app (WebView2 window, system-tray
 # icon, desktop shortcut, high-DPI). The plugin is a no-op on non-Windows
 # platforms and never fails the boot: every problem is logged as a warning.
+#
+# All configuration is optional and workspace-derived by default:
+#   - workingDir defaults to process.cwd() (your DSH workspace root)
+#   - iconPath defaults to <workspace>/deepseek-color.png, then a bundled icon
+# Override them in your profile's cordis.patch.yml if needed, e.g.:
+#
+#   - id: dsh-desktop
+#     config:
+#       shortcutName: 'DeepSeek Harness'
+#       url: 'http://127.0.0.1:3080'
+#       iconPath: 'C:\path\to\icon.png'
+#       workingDir: 'C:\path\to\workspace'
 - insert:
     - id: dsh-desktop
       name: 'dsh-desktop'
-      config:
-        shortcutName: 'DeepSeek Harness'
-        url: 'http://127.0.0.1:3080'
-        iconPath: 'D:\AI\DeepSeek-Harness\deepseek-color.png'
-        workingDir: 'D:\AI\DeepSeek-Harness'
