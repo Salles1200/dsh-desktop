@@ -10,3 +10,6 @@ Desktop.ini
 .DS_Store
 *.user
 *.suo
+
+# installable package tarball
+*.tgz
