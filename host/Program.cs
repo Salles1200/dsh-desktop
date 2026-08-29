@@ -165,7 +165,7 @@ namespace DshDesktopShortcut
             form.Controls.Add(web);
 
             // Tray icon in the notification area.
-            trayIcon = BuildTrayIcon(form, config);
+            trayIcon = BuildTrayIcon(form, config, logPath);
             Log(logPath, "tray icon created");
 
             // Watch for a "show window" signal from a later launch attempt.
@@ -258,11 +258,11 @@ namespace DshDesktopShortcut
             watcher.Start();
         }
 
-        private static NotifyIcon BuildTrayIcon(Form form, Config config)
+        private static NotifyIcon BuildTrayIcon(Form form, Config config, string logPath)
         {
             ContextMenuStrip menu = new ContextMenuStrip();
             ToolStripMenuItem exit = new ToolStripMenuItem("退出");
-            exit.Click += delegate { ExitApp(form); };
+            exit.Click += delegate { ExitApp(form, config, logPath); };
             menu.Items.Add(exit);
 
             NotifyIcon icon = new NotifyIcon();
@@ -285,19 +285,30 @@ namespace DshDesktopShortcut
             form.BringToFront();
         }
 
-        private static void ExitApp(Form form)
+        private static void ExitApp(Form form, Config config, string logPath)
         {
             exiting = true;
+
+            // 1. Kill the server we started ourselves (fast path).
             try
             {
                 if (startedDshProcess != null && !startedDshProcess.HasExited)
                 {
+                    Log(logPath, "killing dsh server pid " + startedDshProcess.Id + " (started by this host)");
                     startedDshProcess.Kill();
                     startedDshProcess.Dispose();
                 }
             }
             catch { }
             startedDshProcess = null;
+
+            // 2. Also stop any DSH server still listening on the UI port — e.g.
+            //    an orphaned server left by an earlier host instance, or one
+            //    started separately — so a fresh launch actually loads newly
+            //    installed plugins instead of reconnecting to a stale server.
+            int port = GetPortFromUrl(config.Url);
+            if (port > 0) KillListenersOnPort(port, logPath);
+
             if (trayIcon != null)
             {
                 trayIcon.Visible = false;
@@ -317,6 +328,65 @@ namespace DshDesktopShortcut
             }
             form.Close();
             Application.Exit();
+        }
+
+        private static int GetPortFromUrl(string url)
+        {
+            try
+            {
+                return new Uri(url).Port;
+            }
+            catch
+            {
+                return 0;
+            }
+        }
+
+        /// <summary>
+        /// Kill the node process(es) currently LISTENING on the given port
+        /// (the DSH web server), regardless of which process started them.
+        /// </summary>
+        private static void KillListenersOnPort(int port, string logPath)
+        {
+            try
+            {
+                ProcessStartInfo psi = new ProcessStartInfo("netstat", "-ano");
+                psi.UseShellExecute = false;
+                psi.CreateNoWindow = true;
+                psi.RedirectStandardOutput = true;
+                psi.StandardOutputEncoding = System.Text.Encoding.ASCII;
+                using (Process netstat = Process.Start(psi))
+                {
+                    string output = netstat.StandardOutput.ReadToEnd();
+                    netstat.WaitForExit();
+                    string needle = ":" + port.ToString();
+                    foreach (string line in output.Split('\n'))
+                    {
+                        if (line.IndexOf(needle, StringComparison.OrdinalIgnoreCase) < 0) continue;
+                        if (line.IndexOf("LISTENING", StringComparison.OrdinalIgnoreCase) < 0) continue;
+                        string[] parts = line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                        int pid;
+                        if (parts.Length >= 2 && int.TryParse(parts[parts.Length - 1], out pid))
+                        {
+                            try
+                            {
+                                Process proc = Process.GetProcessById(pid);
+                                if (proc.ProcessName.ToLowerInvariant() == "node")
+                                {
+                                    Log(logPath, "killing node pid " + pid + " listening on :" + port);
+                                    proc.Kill();
+                                    proc.Dispose();
+                                }
+                            }
+                            catch { }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log(logPath, "kill listeners failed: " + ex.Message);
+            }
         }
 
         // DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2 = -4 (user32, Win10 1703+).
