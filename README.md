@@ -33,23 +33,23 @@
 5. 在系统通知区域（托盘）显示 DSH 图标：**左键点击**显示/恢复 DSH 界面窗口，**右键点击**弹出「退出」菜单；关闭窗口会最小化到托盘，点击「退出」会结束 DSH 服务并退出宿主；
 6. **单实例**：同一时间只运行一个 `dsh-desktop.exe`。再次双击快捷方式时，若已有实例在运行，则只把该实例的窗口显示/恢复到前台，然后立即退出（不会出现第二个窗口、托盘图标或服务进程）。
 
-## 构建与安装
+## 安装（开箱即用）
 
-`bin/`（含原生宿主 `dsh-desktop.exe`）不随仓库分发，需要先构建：
+`bin/`（含原生宿主 `dsh-desktop.exe` 与 WebView2 依赖）已**预构建并随仓库分发**，无需自行构建。
 
-```powershell
-powershell -ExecutionPolicy Bypass -File build.ps1
-```
-
-构建完成后安装：
+克隆后直接安装：
 
 ```sh
-dsh plugin --profile web add ./dsh-desktop
+git clone https://github.com/Salles1200/dsh-desktop.git
+cd dsh-desktop
+dsh plugin --profile web add .
 ```
 
 （`dsh plugin` 会转发给 pnpm；也可以用 `file:` 或 `link:` 形式指向本目录。）
 
 装好后，下次 `dsh web` 启动时插件会自动创建/刷新桌面快捷方式。
+
+> 想自己从源码重建宿主？见下文「构建原生宿主」。
 
 ## 配置
 

@@ -1,5 +1,5 @@
-# Build output (the native host is produced by build.ps1)
-bin/
+# The prebuilt host lives in bin/ and is committed so users can install the
+# plugin out of the box. Rebuild it with build.ps1 if you change host/Program.cs.
 
 # NuGet download cache used by build.ps1
 .tools/
