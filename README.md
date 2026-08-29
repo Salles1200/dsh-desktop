@@ -2,7 +2,7 @@
 
 一个 DSH（DeepSeek Harness）profile bundle 插件：把 DSH 的 Web 界面变成一个 **Windows 桌面应用**——在 DSH 启动时自动在桌面创建（并保持最新）快捷方式，双击后用一个**原生 WebView2 窗口**（真正的 WinForms 宿主，而非浏览器）打开，并带**系统托盘图标**、**单实例**与**高 DPI 清晰渲染**。窗口、任务栏和托盘图标都使用配置的 PNG（自动转成 `.ico`）。
 
-- 图标：默认 `D:\AI\DeepSeek-Harness\deepseek-color.png`（可用 `iconPath` 覆盖）
+- 图标：默认使用插件内置的 `assets/icon.png`；也可在 workspace 放一个 `icon.png`，或通过 `iconPath` 指定（详见下文「配置」）
 - 原生壳：`dsh-desktop.exe`（.NET Framework 4.x WinForms + Microsoft Edge WebView2 Runtime）
 - **托盘**：左键显示/恢复窗口，右键「退出」（结束 DSH 服务并退出）
 - **单实例**：重复启动只把已运行窗口调到前台，不会多开
@@ -59,7 +59,7 @@ dsh plugin --profile web add ./dsh-desktop
 |---|---|---|
 | `shortcutName` | `DeepSeek Harness` | 快捷方式名称（也是窗口标题） |
 | `url` | `http://127.0.0.1:3080` | DSH Web 界面地址 |
-| `iconPath` | `<workspace>/deepseek-color.png`，否则用插件内置默认图标 | 图标 PNG 路径（可选） |
+| `iconPath` | `<workspace>/icon.png`，否则用插件内置 `assets/icon.png` | 图标 PNG 路径（可选） |
 | `workingDir` | `process.cwd()`（你的 DSH workspace 根） | DSH 启动时的工作目录 |
 | `nodePath` | `process.execPath` | node.exe 路径（一般无需覆盖） |
 | `dshEntry` | `process.argv[1]` | DSH 入口 `bin.js`（一般无需覆盖） |

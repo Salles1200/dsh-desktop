@@ -6,7 +6,7 @@
 //
 //   url=http://127.0.0.1:3080
 //   icon=C:\path\to\dsh.ico
-//   workingDir=D:\AI\DeepSeek-Harness
+//   workingDir=C:\path\to\workspace
 //   node=C:\path\to\node.exe
 //   dsh=C:\path\to\dsh\lib\bin.js
 //   title=DeepSeek Harness

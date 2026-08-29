@@ -5,7 +5,7 @@
 #
 # All configuration is optional and workspace-derived by default:
 #   - workingDir defaults to process.cwd() (your DSH workspace root)
-#   - iconPath defaults to <workspace>/deepseek-color.png, then a bundled icon
+#   - iconPath defaults to <workspace>/icon.png, then a bundled icon
 # Override them in your profile's cordis.patch.yml if needed, e.g.:
 #
 #   - id: dsh-desktop
