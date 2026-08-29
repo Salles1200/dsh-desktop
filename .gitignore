@@ -1,0 +1,12 @@
+# Build output (the native host is produced by build.ps1)
+bin/
+
+# NuGet download cache used by build.ps1
+.tools/
+
+# OS / editor noise
+Thumbs.db
+Desktop.ini
+.DS_Store
+*.user
+*.suo

@@ -1,0 +1,13 @@
+# dsh-desktop-shortcut bundle patch: one host-plane plugin that creates and
+# maintains a Windows desktop shortcut which launches the DeepSeek Harness web
+# UI inside a standalone native window (Microsoft Edge / Google Chrome app
+# mode) instead of a normal browser tab. The plugin is a no-op on non-Windows
+# platforms and never fails the boot: every problem is logged as a warning.
+- insert:
+    - id: desktop-shortcut
+      name: 'dsh-desktop-shortcut'
+      config:
+        shortcutName: 'DeepSeek Harness'
+        url: 'http://127.0.0.1:3080'
+        iconPath: 'D:\AI\DeepSeek-Harness\deepseek-color.png'
+        workingDir: 'D:\AI\DeepSeek-Harness'
