@@ -5,6 +5,8 @@
 // from its own directory:
 //
 //   url=http://127.0.0.1:3080
+//   authUrl=http://127.0.0.1:3080/?token=...   (published by the plugin)
+//   pid=12345                                  (dsh process that published it)
 //   icon=C:\path\to\dsh.ico
 //   workingDir=C:\path\to\workspace
 //   node=C:\path\to\node.exe
@@ -15,6 +17,10 @@
 // Behavior:
 //   - starts `dsh web --no-open` with a HIDDEN console (no Node.js taskbar
 //     icon) when the URL is not yet answering;
+//   - navigates to the authenticated URL (`?token=...`) the plugin published,
+//     which is what DSH's Web server exchanges for its signed browser session
+//     cookie; navigating to the plain URL instead shows its 401
+//     "authentication required" page;
 //   - shows the UI in a single native WebView2 window and a tray icon in the
 //     notification area (left-click shows the window, right-click has "退出");
 //   - "退出" kills the DSH server it started and exits this process.
@@ -40,6 +46,12 @@ namespace DshDesktopShortcut
     internal sealed class Config
     {
         public string Url = "http://127.0.0.1:3080";
+        // The launch-token URL DSH's Web server needs for its browser
+        // handshake (`http://127.0.0.1:3080/?token=...`), published by the
+        // dsh-desktop plugin once that process's Web server is listening; and
+        // the dsh pid that published it. Empty/0 when nothing was published.
+        public string AuthUrl = "";
+        public int Pid = 0;
         public string Icon = "";
         public string WorkingDir = "";
         public string Node = "";
@@ -63,6 +75,8 @@ namespace DshDesktopShortcut
                 switch (key)
                 {
                     case "url": config.Url = value; break;
+                    case "authUrl": config.AuthUrl = value.Trim(); break;
+                    case "pid": config.Pid = ParsePid(value); break;
                     case "icon": config.Icon = value; break;
                     case "workingDir": config.WorkingDir = value; break;
                     case "node": config.Node = value; break;
@@ -72,6 +86,13 @@ namespace DshDesktopShortcut
                 }
             }
             return config;
+        }
+
+        private static int ParsePid(string value)
+        {
+            int pid;
+            if (int.TryParse(value.Trim(), out pid) && pid > 0) return pid;
+            return 0;
         }
     }
 
@@ -133,6 +154,16 @@ namespace DshDesktopShortcut
 
             EnsureServer(config, logPath);
 
+            // DSH's Web server authenticates a browser exactly once: the root
+            // URL carrying the launching process's token mints the signed
+            // session cookie. The plugin publishes that URL (plus the pid that
+            // published it) into the config file, so wait briefly for it and
+            // navigate there instead of the plain URL, which is answered with
+            // the 401 "authentication required" page.
+            int serverPid = startedDshProcess != null ? startedDshProcess.Id : 0;
+            string targetUrl = ResolveTargetUrl(config, configPath, serverPid, serverPid > 0 ? 45000 : 3000, logPath);
+            Log(logPath, "navigate target " + targetUrl);
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
@@ -189,8 +220,9 @@ namespace DshDesktopShortcut
                     Log(logPath, "WebView2 init start");
                     await web.EnsureCoreWebView2Async(null);
                     Log(logPath, "WebView2 init ok, runtime " + web.CoreWebView2.Environment.BrowserVersionString);
-                    web.CoreWebView2.Navigate(config.Url);
-                    Log(logPath, "navigate " + config.Url);
+                    WatchAuthentication(web, config, configPath, serverPid, targetUrl, logPath);
+                    web.CoreWebView2.Navigate(targetUrl);
+                    Log(logPath, "navigate " + targetUrl);
                 }
                 catch (Exception ex)
                 {
@@ -501,6 +533,130 @@ namespace DshDesktopShortcut
             {
                 return false;
             }
+        }
+
+        /// <summary>
+        /// Pick the URL the window navigates to. The plugin publishes the
+        /// authenticated URL of the dsh process that owns the listening Web
+        /// server; prefer it while that publisher is alive — and, when this host
+        /// started the server itself, while it is the very process we started.
+        /// Falls back to the plain URL when nothing usable was published: a
+        /// token whose publisher is gone is worse than no token, because its
+        /// process token died with it while the plain URL can still be served
+        /// from an existing browser-session cookie.
+        /// </summary>
+        private static string ResolveTargetUrl(Config config, string configPath, int requiredPid, int waitMilliseconds, string logPath)
+        {
+            DateTime deadline = DateTime.UtcNow.AddMilliseconds(waitMilliseconds > 0 ? waitMilliseconds : 1);
+            while (true)
+            {
+                Config fresh = Config.Load(configPath);
+                if (UsableAuthUrl(fresh, requiredPid))
+                {
+                    Log(logPath, "authenticated url published by dsh pid " + fresh.Pid + " is ready");
+                    return fresh.AuthUrl;
+                }
+                if (DateTime.UtcNow >= deadline) break;
+                System.Threading.Thread.Sleep(250);
+            }
+            // Last look, this time without insisting on the pid we started: a
+            // live server that published its own token is still the right
+            // target.
+            Config settled = Config.Load(configPath);
+            if (UsableAuthUrl(settled, 0))
+            {
+                Log(logPath, "using the authenticated url of live dsh pid " + settled.Pid);
+                return settled.AuthUrl;
+            }
+            Log(logPath, "no live authenticated url published; falling back to the plain url");
+            return config.Url;
+        }
+
+        /// <summary>
+        /// Whether a published authenticated URL can be trusted: it must exist,
+        /// and its publisher must still be running (an unpublished pid means an
+        /// older plugin, which is accepted). A published pid other than
+        /// <paramref name="requiredPid"/> is rejected when a specific server was
+        /// started by this host.
+        /// </summary>
+        private static bool UsableAuthUrl(Config config, int requiredPid)
+        {
+            if (string.IsNullOrEmpty(config.AuthUrl)) return false;
+            if (requiredPid > 0 && config.Pid != requiredPid) return false;
+            return config.Pid <= 0 || ProcessIsAlive(config.Pid);
+        }
+
+        /// <summary>Whether the process is still running (false for a dead or unknown pid).</summary>
+        private static bool ProcessIsAlive(int pid)
+        {
+            if (pid <= 0) return false;
+            try
+            {
+                using (Process process = Process.GetProcessById(pid))
+                {
+                    return !process.HasExited;
+                }
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Whether a response URI is the top-level UI document — the only
+        /// request DSH answers with its 401 authentication page. API and asset
+        /// requests live under their own paths and are never retried here.
+        /// </summary>
+        private static bool IsDocumentRequest(string uri)
+        {
+            try
+            {
+                string path = new Uri(uri).AbsolutePath;
+                return path.Length == 0 || path == "/";
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Log every top-level document status, and recover (bounded) from the
+        /// 401 page by re-resolving the authenticated URL the plugin publishes
+        /// and navigating there. This covers attaching to a Web server whose
+        /// plugin had not published its token yet when the window opened.
+        /// </summary>
+        private static void WatchAuthentication(WebView2 web, Config config, string configPath, int serverPid, string firstTarget, string logPath)
+        {
+            string lastTarget = firstTarget;
+            int retries = 0;
+            web.CoreWebView2.WebResourceResponseReceived += delegate(object sender, CoreWebView2WebResourceResponseReceivedEventArgs args)
+            {
+                try
+                {
+                    string uri = args.Request.Uri;
+                    int status = args.Response.StatusCode;
+                    if (!IsDocumentRequest(uri)) return;
+                    Log(logPath, "document response " + status + " for " + uri);
+                    if (status != 401 || retries >= 3) return;
+                    retries++;
+                    string retryUrl = ResolveTargetUrl(config, configPath, serverPid, 15000, logPath);
+                    if (retryUrl == lastTarget)
+                    {
+                        Log(logPath, "authentication still rejected; not retrying " + retryUrl);
+                        retries = 3;
+                        return;
+                    }
+                    lastTarget = retryUrl;
+                    Log(logPath, "authentication required; retrying with " + retryUrl);
+                    web.CoreWebView2.Navigate(retryUrl);
+                }
+                catch (Exception ex)
+                {
+                    Log(logPath, "authentication watch failed: " + ex.Message);
+                }
+            };
         }
     }
 }
