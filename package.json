@@ -1,6 +1,6 @@
 {
   "name": "dsh-desktop",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "DSH plugin: run the DeepSeek Harness web UI as a native Windows desktop app (WebView2 window, system-tray icon, desktop shortcut, high-DPI)",
   "type": "module",
   "main": "lib/index.js",

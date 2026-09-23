@@ -4,6 +4,22 @@
 # NuGet download cache used by build.ps1
 .tools/
 
+# scratch directory for local host/plugin verification runs
+.verify/
+
+# host diagnostics written beside the exe when it is run from the repo
+dsh-desktop.log
+
+# locally generated runtime state (the plugin writes these under $DSH_HOME; a
+# manual run from the repo root must not commit them either)
+/dsh.ico
+/dsh-desktop.conf
+/manifest.json
+
+# local installs / debug output
+node_modules/
+*.pdb
+
 # OS / editor noise
 Thumbs.db
 Desktop.ini
