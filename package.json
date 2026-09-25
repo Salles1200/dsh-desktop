@@ -1,19 +1,23 @@
 {
   "name": "dsh-desktop",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "DSH plugin: run the DeepSeek Harness web UI as a native Windows desktop app (WebView2 window, system-tray icon, desktop shortcut, high-DPI)",
+  "icon": "assets/icon.png",
   "type": "module",
   "main": "lib/index.js",
   "exports": {
     ".": "./lib/index.js",
     "./cordis.patch.yml": "./cordis.patch.yml",
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./locale/*": "./locale/*"
   },
   "files": [
     "lib/index.js",
     "cordis.patch.yml",
     "assets/icon.png",
     "assets/default-icon.png",
+    "locale/en.json",
+    "locale/zh.json",
     "bin/dsh-desktop.exe",
     "bin/dsh-desktop.exe.config",
     "bin/Microsoft.Web.WebView2.Core.dll",
@@ -23,6 +27,10 @@
     "host/app.config",
     "host/app.manifest"
   ],
+  "engines": {
+    "dsh": ">=0.1.5-rc.3 <0.2.0",
+    "node": ">=22"
+  },
   "license": "MIT",
   "repository": {
     "type": "git",

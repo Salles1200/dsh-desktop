@@ -79,6 +79,32 @@ dsh plugin --profile web add .
 
 > 想自己从源码重建宿主？见下文「构建原生宿主」。
 
+## DSH 版本兼容性
+
+| DSH 版本 | 状态 | 说明 |
+|---|---|---|
+| **0.1.7-rc.2** | ✅ 真实环境验证 | 组合包解析、`dsh web --no-open`、`?token=` 握手（303 → 200）、宿主复制/重建、配置热重载全部正常 |
+| 0.1.5-rc.3 | ✅ 兼容 | 1.0.x 的验证环境 |
+
+0.1.7 中与本插件相关的变化（**插件无需改运行时代码**，但值得了解）：
+
+- **组合包契约未变**：`package.json` 的 `"dsh": { "bundle": { "patch": "./cordis.patch.yml" } }`、profile 的 `dsh.profile.bundles` 顺序叠加、`link:` 安装（含旧 `.dsh-module-fallback` 清理）都照旧。
+- **新增版本预检**：插件 `package.json` 里声明的 `@deepseek-ai/dsh*` **peerDependencies 会被强制检查**（安装前 + 启动时）。本插件**故意不声明**这类 peer——semver 的预发布规则让 `0.1.7-rc.2` 这类版本很难被普通范围覆盖，一旦不满足，组合包会在启动时被**跳过**；兼容范围改由声明性的 `engines.dsh` 表达。
+- **被跳过的组合包会被点名**：启动输出出现 `skipped bundle: dsh-desktop …` 即表示解析 / manifest / patch / 版本预检失败。版本类可用
+  `dsh plugin --profile web allow-version dsh-desktop@<版本> --dsh-version <运行时版本> --accept-risk`
+  豁免（写入 profile 的 `compatibility.json`）。
+- **profile manifest 不再有 `patchReload`**：实时重载改由 base 组合包的 `hmr` 行（`@deepseek-ai/dsh-hmr`，替代旧的 `cordis-plugin-hmr`）提供；遗留的 `patchReload: "live"` 会被 0.1.7 忽略（不会导致启动失败）。
+- **启动失败有新入口**：0.1.7 会把致命启动错误写入 `$DSH_HOME/logs/startup-*.log`。本插件自身永不抛错（失败只记 warning），因此正常情况下该目录不会出现这类文件。
+- **可在插件页管理**：Web 侧边栏「插件」页会列出本组合包，标题/图标/说明来自 `package.json` 的 `icon` 与 `locale/*.json`，并可在此启用/停用（插件自身的配置项仍写在 profile 补丁里，见下节）。
+- **开发期热重载插件自身源码**（可选）：`dsh-hmr` 默认只监听配置变更（`root: []`）。想让改动本仓库 `lib/index.js` 后自动重载，在 profile 补丁里给 `hmr` 行加上本仓库目录：
+
+  ```yaml
+  # 你的 profile 的 cordis.patch.yml
+  - id: hmr
+    config:
+      root: ['.', 'D:\AI\DeepSeek-Harness\dsh-desktop']
+  ```
+
 ## 配置
 
 所有配置都是**可选**的，且默认值与工作区无关——插件在 DSH host 启动时自动从运行时环境推导，因此**不同用户、不同 workspace 都能开箱即用**。如需覆盖，在你的 profile 的 `cordis.patch.yml` 里对 `dsh-desktop` 这一行加 `config` 即可：
@@ -95,6 +121,12 @@ dsh plugin --profile web add .
 
 （`dsh-desktop.conf` 里的 `authUrl` / `pid` 由插件自动写入与维护，不是可配置项。）
 
+本插件**不导出 `Config` schema**——实测 profile 局部插件无法 bare-import 安装目录中的
+`@deepseek-ai/schemastery`（插件真实路径在仓库里、上游没有 `node_modules`），一旦导入该行会
+`failed to import`、插件完全不激活。为保住"零依赖、必能加载"，配置继续由插件自己读取：
+键名写错只会被忽略，因此上表的键名请照抄。Web 侧边栏「插件」页可以启用/停用本组合包，
+但不提供这些配置项的编辑表单。
+
 示例（覆盖图标和工作目录）：
 
 ```yaml
@@ -109,7 +141,8 @@ dsh plugin --profile web add .
 
 - Windows 10/11（已安装 **Microsoft Edge WebView2 Runtime**；随 Edge 自动分发）
 - .NET Framework 4.x（Windows 自带）
-- 插件本体无 npm 运行时依赖（仅使用 Node 内置模块与 Windows PowerShell 5.1）
+- DSH 0.1.5-rc.3 或 0.1.7-rc.2（两者均已验证）；Node ≥ 22（0.1.7 的 dsh 自带 Node 24 构建）
+- 插件本体**零 npm 运行时依赖**：只用 Node 内置模块与 Windows PowerShell 5.1
 
 ## 构建原生宿主
 

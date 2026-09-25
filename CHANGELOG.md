@@ -1,5 +1,27 @@
 # 更新日志
 
+## 1.1.0
+
+适配 DSH **0.1.7-rc.2**（同时兼容 0.1.5-rc.3）；运行时代码无需改动——401 握手所用的
+`connection.authenticatedUrl()` / `?token=` 交换会话 Cookie 在 0.1.7-rc.2 上逐字未变，
+已在真实环境端到端验证（`303` → `200`）。
+
+- **展示元数据**：新增顶层 `icon` 与 `locale/en.json` / `locale/zh.json`，Web 侧边栏「插件」页
+  会据此显示本组合包的图标、标题与说明（0.1.7 约定：`exports` 暴露 `./locale/*`，
+  JSON 形如 `{ "meta": { "title": ..., "description": ... } }`）。已用 0.1.7 的
+  `readPluginMeta()` 实测：标题/说明中英双份、图标解析为 data URL。
+- **仍不导出 `Config` schema（保持零依赖）**：实测 profile 局部插件无法 bare-import 安装目录里的
+  `@deepseek-ai/schemastery`（插件真实路径在仓库中、其上游没有 `node_modules`），
+  一旦导入该行会变成 `failed to import`、插件完全不激活。因此配置项继续由插件自行读取并记录在
+  README；若将来要接入新插件页的配置编辑，需要把 schemastery 声明成依赖（会引入第二份副本）。
+- **版本声明**：`package.json` 增加 `engines.dsh` / `engines.node`（声明性，DSH 当前不强制）。
+  本插件**故意不声明** `@deepseek-ai/dsh*` 的 `peerDependencies`：0.1.7 会强制检查它，
+  而 semver 的预发布规则会让 `0.1.7-rc.2` 这类版本难以被普通范围覆盖，一旦不满足组合包会被启动跳过。
+- **文档**：README 新增「DSH 版本兼容性」章节：0.1.7 的组合包解析/启动审计/插件页/HMR 变化、
+  `patchReload` 字段退役、被跳过组合包与 `allow-version` 豁免、`$DSH_HOME/logs/` 启动诊断。
+
+> 插件仍通过 `dsh plugin --profile web add .` 安装；升级到 1.1.0 后无需改 profile 配置。
+
 ## 1.0.1
 
 修复桌面窗口始终显示 `dsh web authentication required; reopen the URL printed by dsh web.` 的问题。

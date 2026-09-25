@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "DeepSeek Harness Desktop",
+    "description": "Run the DeepSeek Harness web UI as a native Windows desktop app: a WebView2 window with a system-tray icon, a desktop shortcut, single-instance behavior, and high-DPI rendering."
+  }
+}
