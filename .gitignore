@@ -8,12 +8,12 @@
 .verify/
 
 # host diagnostics written beside the exe when it is run from the repo
-dsh-desktop.log
+dsh-simple-desktop.log
 
 # locally generated runtime state (the plugin writes these under $DSH_HOME; a
 # manual run from the repo root must not commit them either)
 /dsh.ico
-/dsh-desktop.conf
+/dsh-simple-desktop.conf
 /manifest.json
 
 # local installs / debug output

@@ -1,6 +1,6 @@
 {
   "meta": {
-    "title": "DeepSeek Harness 桌面端",
-    "description": "把 DeepSeek Harness 的 Web 界面变成原生 Windows 桌面应用：WebView2 窗口 + 系统托盘图标 + 桌面快捷方式，单实例运行、高 DPI 清晰渲染。"
+    "title": "DeepSeek Harness 简约桌面端",
+    "description": "把 DeepSeek Harness 的 Web 界面装进一个极简的原生 Windows 外壳：桌面快捷方式 + WebView2 窗口 + 托盘图标，单实例、高 DPI，零 npm 运行时依赖。"
   }
 }

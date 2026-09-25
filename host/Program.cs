@@ -1,7 +1,7 @@
-// dsh-desktop — a minimal native WebView2 shell for the DeepSeek Harness web UI.
+// dsh-simple-desktop — a minimal native WebView2 shell for the DeepSeek Harness web UI.
 //
 // Built against .NET Framework 4.x (WinForms) and the Microsoft WebView2
-// Evergreen Runtime. It reads a line-based config file `dsh-desktop.conf`
+// Evergreen Runtime. It reads a line-based config file `dsh-simple-desktop.conf`
 // from its own directory:
 //
 //   url=http://127.0.0.1:3080
@@ -27,7 +27,7 @@
 //
 // It is per-monitor DPI aware (via the embedded manifest and a programmatic
 // fallback), so the WebView2 content renders sharply on high-DPI displays.
-// Diagnostics are appended to `dsh-desktop.log` beside the exe.
+// Diagnostics are appended to `dsh-simple-desktop.log` beside the exe.
 // C# 5 compatible (no string interpolation, no `?.`).
 
 using System;
@@ -48,7 +48,7 @@ namespace DshDesktopShortcut
         public string Url = "http://127.0.0.1:3080";
         // The launch-token URL DSH's Web server needs for its browser
         // handshake (`http://127.0.0.1:3080/?token=...`), published by the
-        // dsh-desktop plugin once that process's Web server is listening; and
+        // dsh-simple-desktop plugin once that process's Web server is listening; and
         // the dsh pid that published it. Empty/0 when nothing was published.
         public string AuthUrl = "";
         public int Pid = 0;
@@ -115,11 +115,11 @@ namespace DshDesktopShortcut
         private static bool exiting;
         private static NotifyIcon trayIcon;
 
-        // Single-instance coordination: only one dsh-window process runs at a
+        // Single-instance coordination: only one dsh-simple-desktop process runs at a
         // time. A second launch signals the running instance to show its window
         // and then exits immediately.
-        private const string MUTEX_NAME = "DeepSeekHarness.dsh-window.single-instance";
-        private const string SHOW_EVENT_NAME = "DeepSeekHarness.dsh-window.show";
+        private const string MUTEX_NAME = "DeepSeekHarness.dsh-simple-desktop.single-instance";
+        private const string SHOW_EVENT_NAME = "DeepSeekHarness.dsh-simple-desktop.show";
         private static Mutex singleInstanceMutex;
         private static EventWaitHandle showEvent;
 
@@ -127,10 +127,10 @@ namespace DshDesktopShortcut
         private static void Main(string[] args)
         {
             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-            string logPath = Path.Combine(baseDir, "dsh-desktop.log");
-            string configPath = Path.Combine(baseDir, "dsh-desktop.conf");
+            string logPath = Path.Combine(baseDir, "dsh-simple-desktop.log");
+            string configPath = Path.Combine(baseDir, "dsh-simple-desktop.conf");
 
-            // Single instance: if another dsh-window is already running, ask it
+            // Single instance: if another dsh-simple-desktop is already running, ask it
             // to show its window and exit this process without creating a new
             // window, tray icon, or server.
             if (!IsFirstInstance())
@@ -519,7 +519,7 @@ namespace DshDesktopShortcut
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
                 request.Timeout = 2000;
                 request.Method = "GET";
-                request.UserAgent = "dsh-window/1.0";
+                request.UserAgent = "dsh-simple-desktop/1.0";
                 using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
                 {
                     return true;

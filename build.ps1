@@ -1,4 +1,4 @@
-# build.ps1 — build the native WebView2 host (bin/dsh-desktop.exe).
+# build.ps1 — build the native WebView2 host (bin/dsh-simple-desktop.exe).
 #
 # Requirements:
 #   - Windows (the host is WinForms + WebView2)
@@ -88,7 +88,7 @@ New-Item -ItemType Directory -Force -Path $binDir | Out-Null
 $fw = "$env:WINDIR\Microsoft.NET\Framework64\v4.0.30319"
 & $csc /nologo /target:winexe /platform:x64 /optimize+ `
     /win32manifest:"$hostDir\app.manifest" `
-    /out:"$binDir\dsh-desktop.exe" `
+    /out:"$binDir\dsh-simple-desktop.exe" `
     /r:"$fw\System.dll" /r:"$fw\System.Drawing.dll" /r:"$fw\System.Windows.Forms.dll" `
     /r:"$($sdk.Core.FullName)" /r:"$($sdk.WinForms.FullName)" `
     "$hostDir\Program.cs"
@@ -100,7 +100,7 @@ $copies = @(
     @{ From = $sdk.Core.FullName;     To = "$binDir\Microsoft.Web.WebView2.Core.dll" },
     @{ From = $sdk.WinForms.FullName; To = "$binDir\Microsoft.Web.WebView2.WinForms.dll" },
     @{ From = $sdk.Loader.FullName;   To = "$binDir\WebView2Loader.dll" },
-    @{ From = "$hostDir\app.config";  To = "$binDir\dsh-desktop.exe.config" }
+    @{ From = "$hostDir\app.config";  To = "$binDir\dsh-simple-desktop.exe.config" }
 )
 foreach ($copy in $copies) {
     if ([System.IO.Path]::GetFullPath($copy.From) -eq [System.IO.Path]::GetFullPath($copy.To)) { continue }
@@ -108,5 +108,5 @@ foreach ($copy in $copies) {
 }
 
 Write-Host ""
-Write-Host "Built: $binDir\dsh-desktop.exe"
+Write-Host "Built: $binDir\dsh-simple-desktop.exe"
 Write-Host "Now install with:  dsh plugin --profile web add ."

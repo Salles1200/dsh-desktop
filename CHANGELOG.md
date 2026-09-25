@@ -1,5 +1,17 @@
 # 更新日志
 
+## 2.0.0
+
+**重命名：`dsh-desktop` → `dsh-simple-desktop`**（破坏性变更：包名、Cordis 插件名、组合包行 id、`$DSH_HOME` 状态目录、宿主 exe/conf/日志名全部改名）。
+
+- 运行期产物：`$DSH_HOME/dsh-simple-desktop/`、`dsh-simple-desktop.exe`、`dsh-simple-desktop.exe.config`、`dsh-simple-desktop.conf`、`dsh-simple-desktop.log`
+- 组合包行（`cordis.patch.yml`）改为 `- id: dsh-simple-desktop / name: 'dsh-simple-desktop'`；单实例互斥体与显示事件改为 `DeepSeekHarness.dsh-simple-desktop.*`
+- README 重写：把"极简"定位讲清楚（与 Electron/Tauri 类大型社区桌面端的对比表）、功能清单化（快捷方式 / 原生窗口 / 托盘 / 单实例 / 窗口自适应 / 高 DPI / 自动认证 / 自动拉起服务 / 零依赖 / 永不拖垮 DSH）、明确标注仅适配 Windows；DPI 与浏览器认证改为简要说明
+- 迁移步骤见 README「从 dsh-desktop（1.x）迁移」：移除旧依赖、按新名重新 link、把 profile 补丁里的行 id 改成 `dsh-simple-desktop`；旧的 `$DSH_HOME/dsh-desktop/` 可删除
+- 修复：快捷方式指纹加入**图标内容摘要**（`icoDigest`），换掉 `assets/icon.png` 或改 `iconPath` 之后会重建 `.lnk`，桌面图标不再停在旧图上
+- 修复：图标写入改为"内容相同就跳过 + 单独兜底"，`dsh.ico` 被占用或 PNG 损坏时只记 warning，不再中断宿主文件刷新、conf 写入与快捷方式重建
+- 除上述两项修复外，行为与 1.1.0 一致（0.1.7-rc.2 适配内容不变）
+
 ## 1.1.0
 
 适配 DSH **0.1.7-rc.2**（同时兼容 0.1.5-rc.3）；运行时代码无需改动——401 握手所用的
