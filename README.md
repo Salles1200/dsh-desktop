@@ -1,14 +1,30 @@
 # dsh-simple-desktop
 
-DeepSeek Harness 的 Windows 桌面端外壳。
+DeepSeek Harness 的轻量 Windows 桌面端外壳插件。
 
 **只支持 Windows 10/11。** 其它平台上跳过该插件。
 
 ## 那么多桌面端，你这个能干啥
 
-**省流：桌面快捷方式 + 托盘图标 + 独立窗口**
+**省流：给 profile web 套壳：桌面快捷方式 + 托盘图标 + 独立窗口。**
 
-社区常见 DSH 桌面端会自带一些设置面板、主题、多窗口等，本插件不实现额外功能，仅仅是给 Web UI 套个壳，实现最简洁的界面。
+| | 本插件 dsh-simple-desktop | 官方桌面端（未正式发布） | 社区桌面端 |
+|---|---|---|---|
+| 物种 | DSH 的一个 **profile 插件**（bundle） | 独立 **Electron 应用** | 独立应用（Electron / Tauri） |
+| 安装方式 | `dsh plugin --profile web add <路径或包名>`（转发 pnpm）；也支持 `link:` / `file:` / tarball；git clone 即可 | Windows 安装器 `.exe` / macOS `.dmg`；截止更新暂无官方入口 | 下载安装包：Windows Setup.exe / macOS DMG / Linux AppImage·deb (/ Homebrew) |
+| 安装包体积 | **316 KB**（tgz 实测；解包 919 KB） | 274 MB；Windows 实测安装目录近 1 GB | anywhere-labs：Setup.exe 305.8 MB、DMG 553.6 MB；dataelement：DMG 176–181 MB；dsh-tauri：Setup.exe 7.4 MB（首次启动再下内核） |
+| 安装位置 | 包在 `$DSH_HOME/profiles/web/node_modules/dsh-simple-desktop`；运行期产物 `$DSH_HOME/dsh-simple-desktop/`（约 0.8 MB）；桌面快捷方式 1 个 | 系统安装目录 + 独占 profile `desktop`（配置目录未确认，`$DSH_HOME/profiles/desktop/` 为推测） | 系统安装目录（Program Files / Applications）；用户数据在各自的应用数据目录（anywhere-labs 写明"profiles 与 sessions 存在 Electron 的 per-user 数据目录、不在安装目录内"） |
+| 归属 profile | **`web`**（与 Web UI 同一个） | **`desktop`**（保留名，CLI 拒绝启动/dump/插件管理，由 Electron 独占管理） | 各自的内置/独立 profile |
+| 与 `~/.dsh` 的关系 | 现有的 `.dsh`：同一服务、同一套会话/设置/工作区，切回浏览器无缝 | 与 Web UI 共用 `.dsh` | 不保证共享：dataelement 把整套 `@deepseek-ai/dsh-*` 锁在 0.1.5-rc.2 自带一份内核 |
+| 卸载 | `dsh plugin --profile web remove dsh-simple-desktop`，或在 Web「插件」页取消选中；**2.1.0 起卸载时会删除快捷方式 + 状态目录** | 系统卸载流程 | 系统卸载流程；用户数据自行清理 |
+| 权限与系统改动 | **无需管理员**；不写注册表、不装服务、不进 Program Files | 安装程序，未确认是否需要管理员 | 安装程序，是否需要管理员视安装包而定 |
+| 更新方式 | DSH 启动自动刷新宿主与快捷方式；换版本需重新安装；无独立更新器 | - | 应用内自动更新（`electron-updater` / Tauri updater） |
+| 自带Runtime | **否**：复用系统 Edge WebView2；宿主 exe 约 20 KB；插件零 npm Runtime依赖 | 是（Electron） | 是：Electron 或 Tauri；dataelement 还随包带 `node@24.9.0`，dsh-tauri 内置/首启下载 Node 与内核 |
+| 功能 | 快捷方式、WebView2 原生窗口、托盘（左键唤出/右键退出）、单实例、按主显示器工作区 92% 居中、PerMonitorV2 高 DPI、自动完成 token 认证握手、服务没跑时隐藏控制台拉起 `dsh web --no-open`、非 Windows 跳过、失败只 warning | 用户登录（省去自建 API Key）+ 余额查询与充值、插件管理、快捷键、快捷方式 + 独立窗口 + 托盘 | 插件市场与管理、手机远程控制、Safe Mode 安全模式与恢复、主题/品牌/原生菜单；dataelement 另有 PPT 生成（16 模板 192 布局）；dsh-tauri 内置定时任务、桌宠、Git worktree 等十余个插件 |
+| 平台 | **仅 Windows 10/11** | Windows + macOS | Windows / macOS（/ Linux） |
+| 适合谁 | 已经在用 `dsh web`、只想要一个原生窗口；命令行/脚本派、要 pin 版本/看源码/改行为/干净卸载 | 想要官方账号体系与开箱即用的完整桌面产品 | 想要丰富的桌面功能、插件市场、手机联动、跨平台 |
+
+三者可以共存：本插件只是给你正在用的 `web` profile 加一个桌面窗口。
 
 ## 功能
 

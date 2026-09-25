@@ -1,5 +1,15 @@
 # 更新日志
 
+## 2.1.0
+
+卸载时自己收拾干净。
+
+- 卸载插件时（`dsh plugin --profile web remove dsh-simple-desktop`，或在 Web「插件」页里取消这个组合包），插件在被卸载的那一刻删掉两样东西：它建的桌面快捷方式和 `$DSH_HOME/dsh-simple-desktop/` 状态目录
+- 只删自己建的快捷方式：先读 `.lnk` 的目标，指向本插件宿主 exe 才删，否则原样保留，不会误删你自己做的快捷方式
+- 区分"卸载"和"正常退出"：dispose 时读各 profile 的 `package.json`，如果 `dsh.profile.bundles` 里还有这个名字（普通关停、配置热重载），什么都不做；manifest 读不到时也按"还装着"处理，绝不误删
+- 桌面窗口还开着时，宿主 exe 与 WebView2 文件被占用，状态目录删不掉：这时只记 warning，并提示"从托盘退出窗口后手动删除该目录"
+- 已知边界：先在终端停掉 DSH、再执行 `dsh plugin remove`（进程里没有插件在跑）不会触发清理，这两处仍需手动删除
+
 ## 2.0.0
 
 **重命名：`dsh-desktop` → `dsh-simple-desktop`**（破坏性变更：包名、Cordis 插件名、组合包行 id、`$DSH_HOME` 状态目录、宿主 exe/conf/日志名全部改名）。
