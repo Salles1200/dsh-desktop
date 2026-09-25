@@ -46,9 +46,9 @@ DeepSeek Harness 的轻量 Windows 桌面端外壳插件。
 | `dsh-simple-desktop.exe.config` | WinForms 高 DPI 配置 |
 | `Microsoft.Web.WebView2.Core.dll` / `Microsoft.Web.WebView2.WinForms.dll` | WebView2 的 .NET 封装 |
 | `WebView2Loader.dll` | 定位已安装 WebView2 Runtime 的原生加载器 |
-| `dsh.ico` | 由 PNG 包成的 ICO，快捷方式、窗口、托盘共用 |
+| `dsh-<摘要>.ico` | 由 PNG 包成的 ICO，快捷方式、窗口、托盘共用；文件名带图标内容摘要，换图即换路径，绕开 Windows 的图标缓存 |
 | `dsh-simple-desktop.conf` | 宿主启动时读的行式配置（含插件发布的认证 URL） |
-| `manifest.json` | 快捷方式输入的指纹，用来判断要不要重建 |
+| `manifest.json` | 上次成功写入的记录（快捷方式输入 + 图标摘要），不参与"要不要重建"的判断 |
 | `webview2-data/` | WebView2 用户数据目录，Cookie 存这里 |
 
 宿主启动流程：读同目录的 conf，看 `http://127.0.0.1:3080` 有没有响应；没有就用隐藏控制台启动 `dsh web --no-open` 并等它起来，然后拿插件发布的认证 URL 打开窗口、建托盘图标。诊断写在同目录的 `dsh-simple-desktop.log`。
@@ -167,8 +167,8 @@ powershell -ExecutionPolicy Bypass -File build.ps1 -WebView2Version 1.0.2365.46
 | 窗口显示 `dsh web authentication required; reopen the URL printed by dsh web.` | 宿主导航到了没有 token 的裸地址。确认插件已经升到带 `authUrl` 的那版，并且先关掉正在运行的窗口再重启 `dsh web`。看 `$DSH_HOME/dsh-simple-desktop/dsh-simple-desktop.log`：正常应该有 `authenticated url published by dsh pid ... is ready`，接着 `navigate target ...?token=...`，然后是 `document response 303` 和 `document response 200` |
 | 启动输出有 `skipped bundle: dsh-simple-desktop …` | 组合包没加载，按原因处理；版本对不上就用前面那条 `allow-version` |
 | 日志里 `no live authenticated url published; falling back to the plain url` | 当前服务进程没发布认证 URL，一般是这个进程启动时插件还是旧版本。重启 `dsh web` 即可 |
-| 快捷方式或图标不对 | 删掉 `$DSH_HOME/dsh-simple-desktop/manifest.json` 再重启 DSH，会重建 |
-| 换了图标但桌面图标没变 | 图标内容已计入快捷方式指纹，插件重跑时会重建 `.lnk`；若仍是旧图，属 Windows 图标缓存，按 F5 刷新桌面，或删掉 `manifest.json` 再重启 DSH 强制重建一次 |
+| 快捷方式或图标不对 | 插件每次启动都会读真实的 `.lnk` 与配置比对，缺失或不一致会自动重建，不需要手动删文件；若图标仍是旧的，见下一行 |
+| 换了图标但桌面图标没变 | 图标文件名带内容摘要（`dsh-<摘要>.ico`），图片一变路径就变，插件重跑时会更新快捷方式；若桌面仍显示旧图，按 F5 刷新，必要时清一次 Windows 图标缓存 |
 | 换仓库或目录之后插件不生效 | 检查 profile 的 `dsh.profile.bundles` 和依赖名是不是 `dsh-simple-desktop`，按上面「从 dsh-desktop 1.x 迁移」重新 link |
 
 ## 更新日志

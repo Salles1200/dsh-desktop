@@ -1,6 +1,6 @@
 {
   "name": "dsh-simple-desktop",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "DSH plugin: a minimal native Windows desktop shell for the DeepSeek Harness web UI — desktop shortcut, WebView2 window, tray icon, single instance, high-DPI",
   "icon": "assets/icon.png",
   "type": "module",
